@@ -1,2 +1,0 @@
-# gird
-gridgame
