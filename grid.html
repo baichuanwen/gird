@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+</head>
+
+<body>
+    <div class="hello">
+        <h2>数独游戏</h2>
+        <div style="margin-top: 10px">
+            <div class="container"></div>
+        </div>
+    </div>
+    <script></script>
+    <script>
+        var grid = {
+            initData: function () {
+                while (!this.gennerater(this.makeMarti(0))) {
+                }
+
+            },
+            gennerater(orders) {
+                for (let i = 1; i <= 9; i++) {
+                    if (!this.fillNum(orders, i)) {
+                        return false;
+                    } else {
+                    }
+                }
+                this.puzzy(orders, 9);
+                this.buildGrid(orders)
+                return true;
+
+            },
+            makerow(v = 9) {
+                if (!v) {
+                    let rowRec = new Array(9).fill(0);
+                    return rowRec
+                }
+                else {
+                    let rowArr = new Array(9).fill(0).map(function (val, index, ) {
+                        return index;
+                    });
+                    return rowArr;
+                }
+
+            },
+            makeMarti(v = 9) {
+                return Array.from({ length: 9 }, () => this.makerow(v))
+            },
+            shuapai(array) {
+                const endTinex = array.length - 1;
+                for (let i = 0; i < endTinex; i++) {
+                    const j = i + Math.floor(Math.random() * (array.length - i));
+                    [array[i], array[j]] = [array[j], array[i]]
+                }
+                return array;
+            },
+            gridTab(array) {
+                let spanArr = array.map(function (row, rowIndex) {
+                    return row.map(function (cell, colIndex) {
+                        return `<span  data-rows="${rowIndex}"  data-cols="${colIndex}" class="cell ${!cell ? "white" : ''}" > ${cell ? cell : "&nbsp;"}</span>`;
+                    })
+                });
+                let divArr = spanArr.map(function (rowSpan) {
+                    return `<div class="row">${rowSpan.join("")}</div>`
+                })
+                document.getElementsByClassName("container")[0].innerHTML = divArr.join("");
+            },
+            gridTabSet() {
+                let cells = document.getElementsByClassName("cell"),
+                    cellWidth = cells[0].offsetWidth;
+                for (let i = 0; i < cells.length; i++) {
+                    cells[i].style.height = cellWidth + "px";
+                    cells[i].style.lineHeight = cellWidth + "px"
+                }
+
+            },
+            numberButton() {
+                var arrayNum = new Array(9).fill(0).map((v, i) => i + 1);
+                arrayNum = arrayNum.map((v, i) => {
+                    return `<span class="numBtn">${v}</span>`
+                });
+                var odiv = document.createElement("div");
+                odiv.innerHTML = arrayNum.join("") + `<span class='numBtn' id="delete">x</span>`;
+                odiv.classList.add("btn-group");
+                document.getElementsByClassName("container")[0].appendChild(odiv);
+            },
+            buildGrid(orders) {
+                this.gridTab(orders);
+                this.gridTabSet();
+                this.numberButton();
+                this.userFillIn(orders)
+            },
+            fillNum(orders, n) {
+                return this.fillRow(orders, n, 0);
+            },
+            fillRow(orders, n, rowIndex) {
+                if (rowIndex > 8) {
+                    return true
+                }
+                var orderq = this.makeMarti();
+                orderq.forEach((i, index) => this.shuapai(i));
+                const row = orders[rowIndex];
+                const order = orderq[rowIndex]
+                for (let i = 0; i < 9; i++) {
+                    let cellIndex = order[i];
+                    if (row[cellIndex]) {
+                        continue;
+                    }
+                    if (!this.ckeckFillRow(orders, n, rowIndex, cellIndex)) {
+                        continue;
+                    }
+                    row[cellIndex] = n;
+                    if (!this.fillRow(orders, n, rowIndex + 1)) {
+                        row[cellIndex] = 0;
+                        continue;
+                    }
+                    return true;
+                }
+                return false
+
+            },
+            ckeckFillRow(matrix, n, rowIndex, colIndex) {
+                const row = matrix[rowIndex];
+                const cols = [];
+                matrix.map(function (v, i) {
+                    cols.push(v[colIndex])
+                });
+                const rowSart = Math.floor(rowIndex / 3);
+                const colss = Math.floor(colIndex / 3);
+                const box = matrix.filter(function (va, i) {
+                    if (i >= rowSart * 3 && i < rowSart * 3 + 3) {
+                        return va
+                    }
+                })
+                let boxArr = [];
+                box.map(function (v, n) {
+                    return v.filter(function (val, i) {
+                        if (i >= colss * 3 && i < colss * 3 + 3) {
+                            boxArr.push(val)
+                        }
+                    })
+                })
+                var set = new Set([...row, ...cols, ...boxArr]);
+                if ([...set].includes(n)) {
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            },
+            puzzy(matri, num) {
+                matri.map(function (v, i) {
+                    for (let i = 0; i < num; i++) {
+                        v[Math.floor(Math.random() * 9)] = 0;
+                    }
+                })
+                this.initData = matri;
+                return matri;
+            },
+            userFillIn(orders) {
+                var aBlankSpace = document.querySelectorAll(".white");
+                var btnGroup = document.querySelectorAll(".numBtn");
+                var _this = this;
+                for (let i = 0; i < aBlankSpace.length; i++) {
+                    aBlankSpace[i].onclick = function () {
+                        var a = document.getElementsByClassName("currentBlank")[0];
+                        if (a) {
+                            a.classList.remove("currentBlank");
+                        }
+                        this.classList.add("currentBlank");
+                    }
+                }
+                for (let nun = 0; nun < btnGroup.length; nun++) {
+                    btnGroup[nun].addEventListener("click", function () {
+                        let a = document.getElementsByClassName("currentBlank")[0];
+                        const val = Number(this.innerHTML);
+                        if (a) {
+                            const rowIndex = Number(a.dataset.rows);
+                            const colIndex = Number(a.dataset.cols);
+                            if (!val) {
+                                orders[rowIndex][colIndex] = 0;
+                                a.innerHTML = "&nbsp;";
+                            } else {
+                                if (_this.ckeckFillRow(orders, val, rowIndex, colIndex)) {
+                                    orders[rowIndex][colIndex] = val;
+                                    a.innerHTML = val;
+                                    a.classList.add("fillOut")
+                                    a.classList.remove("currentBlank")
+                                } else {
+                                    alert(`数字${val}已经填写`)
+                                }
+                            }
+                        } else {
+                            alert("没选中要填写的空格")
+                        }
+
+                    })
+                }
+
+            },
+        }
+        window.onload = function () {
+            grid.initData();
+            var n = 2;
+            let a = new Array(12).fill(4);
+            var n = Math.floor(Math.random() * 10)
+            a.splice(n, 1, 2);
+            var time = 0;
+            function getMin(array) {
+                const left = array.slice(0, 4);
+                const center = array.slice(4, 8);
+                const right = array.slice(8);
+                console.log(left)
+                console.log(center)
+                console.log(right)
+                if (arrAdd(left) == arrAdd(center)) {
+                    console.log('1 2 相等啦 处理3就好啦');
+                    var arr2Total = 2 * n;
+                    var rightArr2 = right[0] + right[1];
+                    if (arr2Total == rightArr2) {
+                        console.log("第三个前连个小球也是好的,处理后两个吧");
+                        if (n == right[3]) {
+                            console.log("第三个的第三个小球也是好的,最后一个就是啦")
+                            return false;
+                        } else {
+                            console.log("第三个的第三个竟然不等 就是你啦");
+                            return false;
+                        }
+                    } else {
+                        console.log("第三个的前2个就不等,必有一个");
+                        if (n == right[0]) {
+                            console.log("第三个的第1个小球也是好的,第2个就是啦")
+                            return false;
+                        } else {
+                            console.log("第三个的第1个竟然不等 就是你啦");
+                            return false;
+                        }
+                    }
+                }
+                else {
+                    // 1 2不等的情况
+                    console.log("1 2 不相等 第三对肯定是好的啦,看看哪个比较大");
+                    if (arrAdd(left) < arrAdd(center)) {
+                        console.log('我拿走了1的3个球,我拿了2的3个球给1，拿了3个好球给了2看结果');
+                        var temp = [left[0], left[1], left[2]];
+                        var btemp = [center[0], center[1], center[2]]
+                        console.log("temp是我拿走1里面的3个小球")
+                        left.splice(0, 3, center[0], center[1], center[2])
+                        center.splice(0, 3, right[0], right[1], right[2])
+                        console.log(left);
+                        console.log(center);
+                        console.log(right);
+                        if (arrAdd(left) == arrAdd(center)) {
+                            console.log("竟然平衡了拉，不是好的， 坏的在再拿走的1 的3个球哪里哪里,而且很小啊");
+                            if (temp[0] == temp[1]) {
+                                console.log("比较了拿走1里面的2个小球竟然相等，那就是另一个了");
+                                console.log(`就是你了${temp[2]},是不是呀 别人都不跟你一样`);
+                                return false
+                            } else {
+                                console.log(`既然不相等必有一个,切是小的`);
+                                console.log(`小的是${temp[0] < [temp][1] ? temp[0] : temp[1]}`)
+                                return false
+                            }
+                        }
+                        else if (arrAdd(left) > arrAdd(center)) {
+                            console.log(`结果是1里面的竟然变得很大啦，之前不是很小马，有问题`)
+                            console.log("问题在2里面拿过来的小秋丽,而且是大的那个");
+                            if (btemp[0] == btemp[1]) {
+                                console.log("比较了拿走2里面的2个小球竟然相等，那就是另一个了");
+                                console.log(`就是你了${btemp[2]},是不是呀 别人都不跟你一样`);
+                                return false
+                            } else {
+                                console.log(`既然不相等必有一个,切是da的`);
+                                console.log(`小的是${btemp[0] > [btemp][1] ? btemp[0] : btemp[1]}`)
+                                return false
+                            }
+
+                        } else {
+                            console.log(`结果是1里面的还是很小，有问题`)
+                            console.log("问题在１里面没拿走的那个或者,２里面没动的那个");
+                            if (left[3] == right[0]) {
+                                console.log("比较了1里没动球竟然相等，那就是２里的那个了　痕且很大痕且很");
+                                console.log(`就是你了${center[3]},是不是呀 别人都不跟你一样`);
+                                return false
+                            } else {
+                                console.log(`既然不相等,就是你了 而且很小`);
+                                console.log(`小的是${left[3]}`)
+                                return false
+                            }
+                        }
+
+
+                    } else {
+                        console.log('我拿走了1的3个球,我拿了2的3个球给1，拿了3个好球给了2看结果');
+                        var temp = [left[0], left[1], left[2]];
+                        var btemp = [center[0], center[1], center[2]]
+                        console.log("temp是我拿走1里面的3个小球")
+                        left.splice(0, 3, center[0], center[1], center[2])
+                        center.splice(0, 3, right[0], right[1], right[2])
+                        console.log(left);
+                        console.log(center);
+                        console.log(right);
+                        if (arrAdd(left) == arrAdd(center)) {
+                            console.log("竟然平衡了拉，不是好的， 坏的在再拿走的1 的3个球哪里哪里,而且很da啊");
+                            if (temp[0] == temp[1]) {
+                                console.log("比较了拿走1里面的2个小球竟然相等，那就是另一个了");
+                                console.log(`就是你了${temp[2]},是不是呀 别人都不跟你一样`);
+                                return false
+                            } else {
+                                console.log(`既然不相等必有一个,切是da的`);
+                                console.log(`da的是${temp[0] < [temp][1] ? temp[1] : temp[0]}`)
+                                return false
+                            }
+                        }
+                        else if (arrAdd(left) > arrAdd(center)) {
+                            console.log(`结果是1里面的还是很da，有问题`)
+                            console.log("问题在１里面没拿走的那个或者,２里面没动的那个");
+                            if (left[3] == right[0]) {
+                                console.log("比较了1里没动球竟然相等，那就是２里的那个了　痕且很xiao痕且很");
+                                console.log(`就是你了${center[3]},是不是呀 别人都不跟你一样`);
+                                return false
+                            } else {
+                                console.log(`既然不相等,就是你了 而且很da`);
+                                console.log(`小的是${left[3]}`)
+                                return false
+                            }
+
+                        } else {
+                            console.log(`结果是1里面的竟然变得很xiao啦，之前不是很da马，有问题`)
+                            console.log("问题在2里面拿过来的小秋丽,而且是xiao的那个");
+                            if (btemp[0] == btemp[1]) {
+                                console.log("比较了拿走2里面的2个小球竟然相等，那就是另一个了");
+                                console.log(`就是你了${btemp[2]},是不是呀 别人都不跟你一样`);
+                                return false
+                            } else {
+                                console.log(`既然不相等必有一个,切是xiao的`);
+                                console.log(`小的是${btemp[0] < [btemp][1] ? btemp[0] : btemp[1]}`)
+                                return false
+                            }
+                        }
+
+
+                    }
+                }
+
+
+
+            }
+
+            function arrAdd(arr) {
+                var leftTotal = 0;
+                arr.forEach(function (n, v) {
+                    leftTotal = leftTotal + n
+                })
+                return leftTotal;
+
+            }
+
+            for (let i = 0; i < 8; i++) {
+                getMin(a)
+            }
+
+        }
+    </script>
+    <style>
+        * {
+            margin: 0px;
+            padding: 0;
+        }
+
+        .hello h2 {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        body {
+            overflow: hidden;
+            max-width: 480px;
+            box-sizing: border-box;
+        }
+
+        span.cell {
+            transition: all .5s;
+            display: inline-block;
+            background: #009999;
+            width: 10%;
+            height: 40px;
+            font-size: 16px;
+            text-align: center;
+            line-height: 40px;
+            border-bottom: 1px solid #000000;
+            border-right: 1px solid #000000;
+
+        }
+
+        span.white {
+            background: #fff;
+            color: #fff;
+        }
+
+        span.currentBlank {
+            background: #f60;
+            color: #fff;
+        }
+
+        .btn-group {
+            padding: 5%;
+        }
+
+        div.row {
+            padding-left: 5%;
+            margin: 0 auto;
+            user-select: none;
+        }
+
+        .row .cell:nth-child(3n) {
+            border-right: 2px solid #000;
+
+        }
+
+        .row:nth-child(1) .cell {
+            border-top: 2px solid #000;
+        }
+
+        .row:nth-child(3n) .cell {
+            border-bottom: 2px solid #000;
+        }
+
+        .row .cell:first-child {
+            border-left: 2px solid #000;
+        }
+
+        span.fillOut {
+            color: #000;
+            !important;
+
+        }
+
+        .numBtn {
+            display: inline-block;
+            width: 19%;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            font-size: 20px;
+            border: 1px solid #ccc;
+        }
+
+        .numBtn:hover {
+            transition: .2s;
+            background: #ccc;
+        }
+
+        h1,
+        h2 {
+            font-weight: normal;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            display: inline-block;
+            margin: 0 10px;
+        }
+    </style>
